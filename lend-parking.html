@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lend a Parking Slot</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #071f4c;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    form {
+      background-color: #0e2c5c;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+      width: 100%;
+      max-width: 500px;
+    }
+
+    label {
+      display: block;
+      margin: 15px 0 5px;
+      font-weight: bold;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      margin-bottom: 15px;
+      font-size: 1rem;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 1.1rem;
+      background-color: #6dd5ed;
+      color: #071f4c;
+      border: none;
+      border-radius: 30px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #2193b0;
+      color: #fff;
+    }
+
+    .back-link {
+      margin-top: 20px;
+      text-decoration: none;
+      color: #6dd5ed;
+      font-weight: bold;
+    }
+
+    .message {
+      margin-top: 15px;
+      color: #6dd5ed;
+      font-weight: bold;
+    }
+
+    .countdown {
+      margin-top: 15px;
+      color: #ffcc00;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Lend Your Parking Slot</h1>
+
+  <form id="lendForm">
+    <label for="name">Your Name</label>
+    <input type="text" id="name" name="name" placeholder="Enter your name" required />
+
+    <label for="vehicleType">Vehicle Type</label>
+    <select id="vehicleType" name="vehicleType" required>
+      <option value="">-- Choose Vehicle Type --</option>
+      <option value="Car">Car</option>
+      <option value="Bike">Bike</option>
+      <option value="SUV">SUV</option>
+    </select>
+
+    <label for="slot">Select Parking Slot</label>
+    <select id="slot" name="slot" required>
+      <option value="">-- Choose Slot --</option>
+      <option value="A1">A1</option>
+      <option value="A2">A2</option>
+      <option value="B1">B1</option>
+      <option value="B2">B2</option>
+    </select>
+
+    <label for="time">Available From (Time)</label>
+    <input type="time" id="time" name="time" required />
+
+    <label for="duration">Available Duration (hours)</label>
+    <input type="number" id="duration" name="duration" min="1" required />
+
+    <button type="submit">Lend Slot</button>
+    <p class="message" id="message"></p>
+    <p class="countdown" id="countdown"></p>
+  </form>
+
+  <a href="pooji.html" class="back-link">← Back to Home</a>
+
+  <script>
+    const lendForm = document.getElementById('lendForm');
+    const message = document.getElementById('message');
+    const countdownDisplay = document.getElementById('countdown');
+
+    lendForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const name = document.getElementById('name').value.trim();
+      const vehicleType = document.getElementById('vehicleType').value;
+      const slot = document.getElementById('slot').value;
+      const time = document.getElementById('time').value;
+      const duration = parseInt(document.getElementById('duration').value);
+
+      if (!name || !vehicleType || !slot || !time || !duration) {
+        message.textContent = "Please fill in all fields.";
+        return;
+      }
+
+      // Prepare lending data
+      const lending = {
+        name,
+        vehicleType,
+        slot,
+        time,
+        duration,
+        endTime: calculateEndTime(time, duration)
+      };
+
+      // Save to localStorage
+      let lentSlots = JSON.parse(localStorage.getItem('lentSlots')) || [];
+      lentSlots.push(lending);
+      localStorage.setItem('lentSlots', JSON.stringify(lentSlots));
+
+      message.textContent = "Parking slot is now available for lending!";
+
+      // Start countdown for the lent slot availability
+      startCountdown(lending.endTime);
+
+      // Optionally clear the form
+      lendForm.reset();
+    });
+
+    // Calculate end time based on the current time and duration
+    function calculateEndTime(startTime, duration) {
+      const [hours, minutes] = startTime.split(':').map(Number);
+      const endDate = new Date();
+      endDate.setHours(hours + duration);
+      endDate.setMinutes(minutes);
+      return endDate;
+    }
+
+    // Start the countdown timer
+    function startCountdown(endTime) {
+      const interval = setInterval(function() {
+        const now = new Date();
+        const remainingTime = endTime - now;
+
+        if (remainingTime <= 0) {
+          clearInterval(interval);
+          countdownDisplay.textContent = "Slot is no longer available.";
+        } else {
+          const hours = Math.floor(remainingTime / 1000 / 60 / 60);
+          const minutes = Math.floor((remainingTime / 1000 / 60) % 60);
+          const seconds = Math.floor((remainingTime / 1000) % 60);
+          countdownDisplay.textContent = `Slot Available for: ${hours}h ${minutes}m ${seconds}s`;
+        }
+      }, 1000);
+    }
+  </script>
+
+</body>
+</html>
